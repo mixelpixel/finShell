@@ -15,7 +15,7 @@
 ## q1-25divMonitor.sh
 The script q1-25divMonitor.sh will show a portfolio of stocks, their average buy-in price, & the difference between that and the current price.
 
-Portfolio i.e. a single stock or cryptocurrency symbol, and that asset's buy-in price for a single-stock at the time of purchase)
+Portfolio i.e. a single stock or cryptocurrency symbol, and that asset's buy-in price for a single-stock at the time of purchase) e.g. in BSD zsh syntax:
 
 ```sh
 portfolio=(
@@ -125,3 +125,16 @@ $ sh q1-25divINFO.v2.sh
 ```
 
 Next up, I think I would like to combine the two into one table showing pertinent dividend details with the basic position.  I am not entirely sure, however, that I fully grasp the math yet for teasing out what I expect vs. where it's going.  I would also like to finesse how crypto is situated given the variable reward rates from staking (so I would want a mic of price and yield as a exit floor), but for now I need to go touch some grass since this is now in a useful state (as of Jan 1, 3:30pm MST)
+
+# Note
+These scripts can be described as Zsh with GNU utilities flavor. Here's why:
+1. **Shell Type:** The script explicitly uses `#!/bin/zsh`, which indicates it's written for the Z shell (Zsh).
+2. **Utilities Used:** It relies heavily on external tools like `curl`, `jq`, and `bc`. These are common utilities found in many Unix-like environments, but their behavior (especially for `jq` and `bc`) typically aligns with the GNU core utilities.
+3. **Portability:**
+  - BSD utilities might behave differently from GNU utilities (e.g., flags in tools like `date` or `echo`).
+  - The script uses `date` commands (e.g., `date -j -f`) with behavior found in macOS/BSD-style `date` utilities, but it assumes GNU-style compatibility in other areas (e.g., `bc` calculations).
+  - Therefore, it's a blend, but its reliance on Zsh-specific features places it solidly in the Zsh ecosystem.
+
+Key Notes:
+- If running on pure BSD environments, modifications might be required for utilities like `date`.
+- For Linux users, GNU tools are the default, but the Zsh shell must still be installed if not already present.
