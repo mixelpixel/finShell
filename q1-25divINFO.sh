@@ -9,9 +9,21 @@ POLYGON_API_KEY="9_vLLYqfkow4neALRDCLwuriDxAIpfxu"
 # Define your portfolio as an array of strings in the format "symbol:buy_in_price"
 portfolio=(
   "OXLC:5.09"
+  "BCE:22.63"
+  "ABR:13.68"
+  "GNK:14.05"
   "CSWC:21.47"
   "DKL:40.62"
   "HTGC:18.39"
+  "AB:37.45"
+  "WES:38.75"
+  "BTI:36.31"
+  "F:9.91"
+  "EPR:44.1"
+  "MO:52.38"
+  "ET:11.98"
+  "SOL:123.14"
+  "ATNI:22.46"
   "T:19.5"
 )
 
@@ -112,6 +124,9 @@ calculate_yields() {
   echo "  Projected Total Dividends (Next Year): $projected_annual_dividend"
   echo "  Forward Yield: $forward_yield%"
   echo ""
+
+  # Add delay to respect the free-tier rate limit of 5 requests per minute (12 seconds delay)
+  sleep 12
 }
 
 # Main loop to iterate over portfolio
