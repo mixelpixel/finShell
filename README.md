@@ -1,14 +1,26 @@
 # finShell
   Fun finance related stuff!  Specifically this repository was started in late December of 2024 with the purpose of keeping an eye on a particular portfolio of dividend yielding stocks (e.g. a list of my particular set of symbols and associated buy-in prices.)  There are a couple I have owned previously for some time (F, ET, SOL, T) and two high yield rate dividend stocks I have owned for at least one payment period (HTGC & DKL).  Since March of 2020 when the market fell with the onset of COVID-19, I have been investing with Robinhoodd.  I mainly just bought a bunch of Apple at the time (which has done very well since) and have made a couple well-timed buys of ye ol' dip since (e.g. $META in'22).
 
-  My working hypothesis is that the next quarter or two are likely to bear what are now unclear growth opportunities, so I figured I would bolster my dividend yielding stocks.  Ultimately I am looking to rceate a reporting script that will give me a quick overview of the stock's performance.  For each investment, I figure if the stock price stays above price minus annual yield, let 'er ride.  If it gets near or goes below that threshold, I figure I can just reallocate the funds tied up in that stock to another better opportunity.  I am NOT suggesting anyone follow suit, but these are the tools I'll be using and refining to collate the deets.  I am certain if someone who actually had ever studied economics and finance might do things very differently, but I am learning as I go :).
+  My working hypothesis is that the next quarter or two are likely to bear what are now unclear growth opportunities, so I figured I would bolster my dividend yielding stocks.  Ultimately I am looking to ceate a reporting script that will give me a quick overview of the portfolio's performance.  For each investment, I figure if the stock price stays above price minus annual yield, let 'er ride.  If it gets near or goes below that threshold, I figure I can just reallocate the funds tied up in that stock to another better opportunity.  I am NOT suggesting anyone follow suit, but these are the tools I'll be using and refining to collate the deets.  I am certain if someone who actually had ever studied economics and finance would do things very differently, but I am learning as I go :)  With that in mind, my secondary goal is to get this useful so I can monitor additional portfolio lists for other potential investments (i.e. I might expand it to collate basic financials).
 
-  If these scripts can be of use to you, please have at them and let me know if you are able to make them better!
+  If these scripts can be of use to you, please have at them and let me know if you are able to make them better, thanks.
 
 ## q1-25divMonitor.sh
 The script q1-25divMonitor.sh will show a portfolio of stocks, their average buy-in price, & the difference between that and the current price.
-Example output:
+
+Portfolio i.e. a single stock or cryptocurrency symbol, and that asset's buy-in price for a single-stock at the time of purchase)
+
+```sh
+portfolio=(
+  "OXLC:5.09"
+  "BCE:22.63"
+  "ABR:13.68"
+  "GNK:14.05"
+)
 ```
+
+Example output:
+```term
 $ q1-25divMonitor.sh
 Symbol | Buy-In Price | Current Price | Delta      | % Change
 -------------------------------------------------------------
@@ -35,7 +47,7 @@ T      | 19.5         | 22.77         | 3.27       |  16.77  %
   The script q1-25divINFO.sh will show a portfolio of stocks, their average buy-in price, the current price, a summative of the previous year's dividend payments for a trailing annual yield, and the projected forward annual yield.  Most stocks in this portfolio are quarterly.  I have not (yet!) handled the one cryptocurrency I want to report on (and for the purposes of this fiscal qtr, I will prolly just hard-code a ballpark target of ~6+%).  OF NOTE: Most stocks in this portfolio are quarterly, but some are monthly, and I have done what I can to account for disbursed payments per most recent payment date.  If you want to apply this script to a dividend earning portfolio with more complex structures and schedules, I wish you the best.
 
 Example output (Symbol burgers):
-```
+```term
 $ sh trailingAndFWDdivYield2.sh
 OXLC:
   Buy-in Price: 5.09
@@ -80,7 +92,7 @@ T:
 
 ### q1-25divINFO.v2.sh
 Example output (a [table](https://youtu.be/dWOGbu5BcT0)):
-```
+```term
 $ sh q1-25divINFO.v2.sh
 +--------+--------------+--------------+-----------------------+--------------+-------------------------+-----------+
 | Symbol | Buy-in Price | Curr. Price  | Tot. Div. (Last Yr)   | TRAIL YLD    | Proj. Div. (Next Yr)    | FWD YLD   |
