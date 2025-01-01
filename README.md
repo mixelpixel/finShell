@@ -105,4 +105,4 @@ $ sh q1-25divINFO.v2.sh
 +--------+--------------+--------------+-----------------------+--------------+-------------------------+-----------+
 ```
 
-Next up, I think I would like to combine the two into one table showing pertinent dividend details with the basic position.  I am not entirely sure, however, that I fully grasp the math yet and need to go touch grass now that this is in a useful state (as of Jan 1, 3:30pm MST)
+Next up, I think I would like to combine the two into one table showing pertinent dividend details with the basic position.  I am not entirely sure, however, that I fully grasp the math yet for teasing out what I expect vs. where it's going.  I would also like to finesse how crypto is situated given the variable reward rates from staking (so I would want a mic of price and yield as a exit floor), but for now I need to go touch some grass since this is now in a useful state (as of Jan 1, 3:30pm MST)
