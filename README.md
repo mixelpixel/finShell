@@ -1,0 +1,2 @@
+# finShell
+Finance related stuff
