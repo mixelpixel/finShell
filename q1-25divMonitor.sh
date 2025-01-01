@@ -9,6 +9,7 @@ API_KEY="get_yr_own_API_KEY_https://finnhub.io/"
 # So far I have tried polygon.io (5 API requests per minute)
 # and https://www.alphavantage.co/ but I am ignorant of other simple and FREE means to get current price and dividend data
 # Please feel free to replace my list of stocks and buy in prices with yur own portfolio!
+# REQUIRES jq & curl in yr env
 
 portfolio=(
   "OXLC:5.09"
