@@ -7,6 +7,11 @@ FINNHUB_API_KEY="get_yr_own_API_KEY_https://finnhub.io/"
 POLYGON_API_KEY="get_yr_own_API_KEY_https://polygon.io/"
 
 # Define your portfolio as an array of strings in the format "symbol:buy_in_price"
+# Feel free to replace with your own list of dividend yielding stocks.
+# This particular list is ranked.
+# From top to bottom, the highest yield rewards (~19% w/$OXLC and ~5% w/$T)
+# Conceptually this associated yield rate is simply what Robinhoood reported on the day ~12/24/2024
+# The value can be thought of as the rate that caught my interest.
 portfolio=(
   "OXLC:5.09"
   "BCE:22.63"
