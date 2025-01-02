@@ -3,7 +3,7 @@
 ########################################
 # Configuration
 ########################################
-POLYGON_API_KEY="9_vLLYqfkow4neALRDCLwuriDxAIpfxu"
+POLYGON_API_KEY="get_yr_own_API_KEY_https://polygon.io/"
 portfolio=(
   "OXLC:5.09"
   "BCE:22.63"
