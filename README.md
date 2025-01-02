@@ -126,6 +126,37 @@ $ sh q1-25divINFO.v2.sh
 
 Next up, I think I would like to combine the two into one table showing pertinent dividend details with the basic position.  I am not entirely sure, however, that I fully grasp the math yet for teasing out what I expect vs. where it's going.  I would also like to finesse how crypto is situated given the variable reward rates from staking (so I would want a mic of price and yield as a exit floor), but for now I need to go touch some grass since this is now in a useful state (as of Jan 1, 3:30pm MST)
 
+## q1-25divDATES.sh
+Dividend Finance Scheduling
+Example output:
+```term
+> sh q1-25divDATES.sh
+| Symbol     | Cash Amount    | Declaration Date   | Ex-Dividend Date   | Pay Date     | Frequency  |
+|------------|----------------|--------------------|--------------------|--------------|------------|
+| OXLC       | 0.09           | 2024-11-01         | 2025-01-17         | 2025-01-31   | 12         |
+| BCE        | 0.9975         | 2024-11-07         | 2024-12-16         | 2025-01-15   | 4          |
+| ABR        | 0.43           | 2024-11-01         | 2024-11-15         | 2024-11-27   | 4          |
+| GNK        | 0.4            | 2024-11-06         | 2024-11-18         | 2024-11-25   | 4          |
+| CSWC       | 0.05           | 2024-10-23         | 2024-12-13         | 2024-12-31   | 4          |
+| DKL        | 1.1            | 2024-10-29         | 2024-11-08         | 2024-11-14   | 4          |
+| HTGC       | 0.4            | 2024-10-28         | 2024-11-13         | 2024-11-20   | 4          |
+| AB         | 0.77           | 2024-10-24         | 2024-11-04         | 2024-11-21   | 4          |
+| WES        | 0.875          | 2024-10-17         | 2024-11-01         | 2024-11-14   | 4          |
+| BTI        | 0.743059       | 2024-02-08         | 2024-12-20         | 2025-02-06   | 4          |
+| F          | 0.15           | 2024-10-28         | 2024-11-07         | 2024-12-02   | 4          |
+| EPR        | 0.285          | 2024-12-12         | 2024-12-31         | 2025-01-15   | 12         |
+| MO         | 1.02           | 2024-12-11         | 2024-12-26         | 2025-01-10   | 4          |
+| ET         | 0.3225         | 2024-10-28         | 2024-11-08         | 2024-11-19   | 4          |
+| ATNI       | 0.24           | 2024-12-18         | 2024-12-31         | 2025-01-08   | 4          |
+| T          | 0.2775         | 2024-12-12         | 2025-01-10         | 2025-02-03   | 4          |
+
+=== NEAR FUTURE Ex-Dividend Date Report ===
+Ex-Dividend dates occurring in the next 10 days:
+| Symbol     | Ex-Dividend Date   |
+|------------|--------------------|
+| T          | 2025-01-10         |
+```
+
 # Note
 These scripts can be described as Zsh with GNU utilities flavor. Here's why:
 1. **Shell Type:** The script explicitly uses `#!/bin/zsh`, which indicates it's written for the Z shell (Zsh).
