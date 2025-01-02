@@ -151,8 +151,21 @@ process_symbol() {
   fi
 }
 
+###############################################################################
+# This function prints the row for Table 1 with the new highlighting rules:
+#
+# 1) If decl == current_date => single leading asterisk in MM/DD/YYYY
+#      e.g.  *05/01/2025
+# 2) Else, compute how many days old the declaration is:
+#      age_in_days = (today_secs - decl_secs) / 86400
+#    a) If 70 <= age_in_days <= 119 => trailing asterisk (05/01/2025*)
+#    b) Else if (decl_date + 1 year) is within 10 weeks => trailing asterisk
+#         i.e., if ( (decl_secs + 365 days) - today_secs ) <= 70 days
+#    Otherwise, no highlight.
+###############################################################################
 print_most_recent_dividend() {
   local json="$1"
+
   local sym cash decl ex pay freq
   sym="$(echo "$json" | jq -r '.Symbol')"
   cash="$(echo "$json" | jq -r '."Cash Amount"')"
@@ -161,21 +174,57 @@ print_most_recent_dividend() {
   pay="$(echo "$json" | jq -r '."Pay Date"')"
   freq="$(echo "$json" | jq -r '.Frequency')"
 
-  # If declaration date == today's date, highlight it with asterisks in MM/DD/YYYY format
+  local decl_str="$decl"
+
+  # Convert to seconds
+  local decl_secs
+  decl_secs="$(date_to_seconds "$decl")"
+  local current_secs
+  current_secs="$(date_to_seconds "$current_date")"
+
+  local age_in_days
+  age_in_days=$(( (current_secs - decl_secs) / 86400 ))
+
+  # For "add 1 year", we'll define 365 days. (Not perfect for leap years, but typical usage.)
+  local one_year_secs=$((365*86400))
+  local decl_plus_year_secs=$(( decl_secs + one_year_secs ))
+  local days_until_annual=$(( (decl_plus_year_secs - current_secs) / 86400 ))
+
+  # We'll attempt to convert to MM/DD/YYYY if we plan to highlight
+  local decl_formatted
+  decl_formatted=$(date -j -f "%Y-%m-%d" "$decl" '+%m/%d/%Y' 2>/dev/null)
+  # If date command fails, we keep the original YYYY-MM-DD format
+
+  # Condition 1: decl == current_date => single leading asterisk
   if [[ "$decl" == "$current_date" ]]; then
-    # Attempt to convert from YYYY-MM-DD to MM/DD/YYYY
-    local decl_formatted
-    decl_formatted=$(date -j -f "%Y-%m-%d" "$decl" '+%m/%d/%Y' 2>/dev/null)
     if [[ -n "$decl_formatted" ]]; then
-      decl="*$decl_formatted*"
+      decl_str="*$decl_formatted"
     else
-      # If conversion fails, just wrap the original date
-      decl="*$decl*"
+      decl_str="*$decl"
+    fi
+
+  else
+    # Condition 2: if 70 <= age_in_days <= 119 => trailing asterisk
+    # (10 to 17 weeks old)
+    if (( age_in_days >= 70 && age_in_days <= 119 )); then
+      if [[ -n "$decl_formatted" ]]; then
+        decl_str="${decl_formatted}*"
+      else
+        decl_str="${decl}*"
+      fi
+    # Condition 3: if next annual is within 10 weeks => trailing asterisk
+    elif (( days_until_annual <= 70 )); then
+      # That means the next annual declaration is soon
+      if [[ -n "$decl_formatted" ]]; then
+        decl_str="${decl_formatted}*"
+      else
+        decl_str="${decl}*"
+      fi
     fi
   fi
 
   printf "| %-10s | %-14s | %-18s | %-18s | %-12s | %-10s |\n" \
-    "$sym" "$cash" "$decl" "$ex" "$pay" "$freq"
+    "$sym" "$cash" "$decl_str" "$ex" "$pay" "$freq"
 }
 
 ########################################
@@ -212,12 +261,11 @@ done
 ########################################
 # SECOND REPORT: Future Ex-Dividends
 ########################################
-printf "\n=== NEAR FUTURE Ex-Dividend Date Report ===\n"
+printf "\n=== FUTURE Ex-Dividend Report ===\n"
 
 # If no future ex-dates found at all
 if [[ ${#future_ex_dates[@]} -eq 0 ]]; then
   printf "No future ex-dividend dates found across the entire portfolio.\n"
-  # Add a trailing newline before script ends
   printf "\n"
   exit 0
 fi
@@ -225,7 +273,7 @@ fi
 # Sort them by date (the portion after the comma).
 sorted_future_ex_dates=($(printf "%s\n" "${future_ex_dates[@]}" | sort -t',' -k2))
 
-# We’ll check if any are within the next 10 days (instead of 7).
+# We’ll check if any are within the next 10 days.
 ten_days_from_now=$(date -j -v+10d '+%Y-%m-%d')
 current_secs=$(date_to_seconds "$current_date")
 ten_days_secs=$(date_to_seconds "$ten_days_from_now")
@@ -243,7 +291,7 @@ for entry in "${sorted_future_ex_dates[@]}"; do
 done
 
 if [[ ${#within_10_days[@]} -eq 0 ]]; then
-  # Then no ex-dates in next 10 days, so just show earliest overall
+  # Then no ex-dates in the next 10 days, so just show earliest overall
   earliest="${sorted_future_ex_dates[0]}"
   earliest_sym="${earliest%%,*}"
   earliest_date="${earliest#*,}"
@@ -265,5 +313,5 @@ else
   done
 fi
 
-# Finally, add a trailing newline for visual clarity
+# Trailing newline for visual clarity
 printf "\n"
