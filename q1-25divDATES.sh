@@ -3,7 +3,12 @@
 ########################################
 # Configuration
 ########################################
-POLYGON_API_KEY="get_yr_own_API_KEY_https://polygon.io/"
+POLYGON_API_KEY="get_yr_own_API_KEY_https://polygon.io/"#!/bin/zsh
+
+########################################
+# Configuration
+########################################
+POLYGON_API_KEY="9_vLLYqfkow4neALRDCLwuriDxAIpfxu"
 portfolio=(
   "OXLC:5.09"
   "BCE:22.63"
@@ -61,7 +66,7 @@ process_symbol() {
   local data
   data="$(fetch_dividend_data "$symbol")"
 
-  # Skip if no data
+  # Skip if no data or .results is null
   if [[ -z "$data" || $(echo "$data" | jq -r '.results') == "null" ]]; then
     return
   fi
@@ -120,7 +125,8 @@ process_symbol() {
   #####################################
   # 2) The next future ex-dividend date
   #
-  #    This is the earliest ex_dividend_date > today.
+  #    This is the earliest ex_dividend_date > today
+  #    (for the second report).
   #####################################
   local next_dividend_json
   next_dividend_json="$(
@@ -145,19 +151,27 @@ process_symbol() {
 }
 
 ###############################################################################
-# This function prints each row for Table 1 with special styling logic:
+# TABLE 1 PRINT LOGIC
 #
-# - Declaration Date:
-#   1) If decl == current_date => single leading asterisk (e.g. *05/02/2025)
-#   2) If 70 <= age_in_days <= 119 => trailing asterisk (05/02/2025*)
-#   3) If (decl + 1 year) is within 10 weeks => trailing asterisk
+# 1) Declaration Date:
+#    - If decl == current_date => leading "*" (YYYY-MM-DD)
+#    - If 70 <= age_in_days <= 119 => trailing "*"
+#    - If next annual is within 10 weeks => trailing "*"
 #
-# - Pay Date:
-#   If pay_date is within the next 5 days => trailing asterisk, e.g. 05/07/2025*
+# 2) Ex-Dividend Date:
+#    - within 3 days => leading "*"
+#    - within 7 days => single trailing "*"
+#    - within 30 days => double trailing "**"
+#
+# 3) Pay Date:
+#    - if pay_date is in the next 5 days => trailing "*"
+#
+# All displayed as YYYY-MM-DD with asterisks, never converting to MM/DD/YYYY.
 ###############################################################################
 print_most_recent_dividend() {
   local json="$1"
 
+  # Extract fields from JSON
   local sym cash decl ex pay freq
   sym="$(echo "$json" | jq -r '.Symbol')"
   cash="$(echo "$json" | jq -r '."Cash Amount"')"
@@ -166,77 +180,72 @@ print_most_recent_dividend() {
   pay="$(echo "$json" | jq -r '."Pay Date"')"
   freq="$(echo "$json" | jq -r '.Frequency')"
 
-  # ---------------
-  # Handle Decl Date
-  # ---------------
-  local decl_str="$decl"
-  local decl_secs
-  decl_secs="$(date_to_seconds "$decl")"
   local current_secs
   current_secs="$(date_to_seconds "$current_date")"
 
-  local age_in_days
-  age_in_days=$(( (current_secs - decl_secs) / 86400 ))
+  ########################################
+  # Declaration Date (YYYY-MM-DD + asterisks)
+  ########################################
+  local decl_str="$decl"
+  local decl_secs
+  decl_secs="$(date_to_seconds "$decl")"
+  if (( decl_secs > 0 )); then
+    local age_in_days=$(( (current_secs - decl_secs) / 86400 ))
+    local one_year_secs=$((365*86400))
+    local decl_plus_year_secs=$(( decl_secs + one_year_secs ))
+    local days_until_annual=$(( (decl_plus_year_secs - current_secs) / 86400 ))
 
-  local one_year_secs=$((365*86400))
-  local decl_plus_year_secs=$(( decl_secs + one_year_secs ))
-  local days_until_annual=$(( (decl_plus_year_secs - current_secs) / 86400 ))
-
-  local decl_formatted
-  decl_formatted=$(date -j -f "%Y-%m-%d" "$decl" '+%m/%d/%Y' 2>/dev/null)
-
-  # Condition 1: If decl == current_date => single leading asterisk
-  if [[ "$decl" == "$current_date" ]]; then
-    if [[ -n "$decl_formatted" ]]; then
-      decl_str="*$decl_formatted"
+    # 1) If decl == current_date => leading "*"
+    if [[ "$decl" == "$current_date" ]]; then
+      decl_str="*${decl}"
     else
-      decl_str="*$decl"
-    fi
-  else
-    # Condition 2: 70 <= age_in_days <= 119 => trailing asterisk
-    if (( age_in_days >= 70 && age_in_days <= 119 )); then
-      if [[ -n "$decl_formatted" ]]; then
-        decl_str="${decl_formatted}*"
-      else
+      # 2) 10-17 weeks old => trailing "*"
+      if (( age_in_days >= 70 && age_in_days <= 119 )); then
         decl_str="${decl}*"
-      fi
-    # Condition 3: If next annual is within 10 weeks => trailing asterisk
-    elif (( days_until_annual <= 70 )); then
-      if [[ -n "$decl_formatted" ]]; then
-        decl_str="${decl_formatted}*"
-      else
+      # 3) Next annual is within 10 weeks => trailing "*"
+      elif (( days_until_annual <= 70 )); then
         decl_str="${decl}*"
       fi
     fi
   fi
 
-  # ---------------
-  # Handle Pay Date
-  # ---------------
+  ########################################
+  # Ex-Dividend Date (YYYY-MM-DD + asterisks)
+  ########################################
+  local ex_str="$ex"
+  local ex_secs
+  ex_secs="$(date_to_seconds "$ex")"
+  if (( ex_secs > current_secs )); then
+    local days_until_ex=$(( (ex_secs - current_secs) / 86400 ))
+
+    if (( days_until_ex <= 3 )); then
+      # within 3 days => leading "*"
+      ex_str="*${ex}"
+    elif (( days_until_ex <= 7 )); then
+      # within 7 days => trailing "*"
+      ex_str="${ex}*"
+    elif (( days_until_ex <= 30 )); then
+      # within 30 days => double trailing "**"
+      ex_str="${ex}**"
+    fi
+  fi
+
+  ########################################
+  # Pay Date (YYYY-MM-DD + trailing "*" if within 5 days)
+  ########################################
   local pay_str="$pay"
   local pay_secs
   pay_secs="$(date_to_seconds "$pay")"
-
-  # 5 days => 5*86400
-  local five_days_secs=$((5*86400))
-
-  # If pay_date is in the future AND <= 5 days away => trailing asterisk
   if (( pay_secs > current_secs )); then
     local days_until_pay=$(( (pay_secs - current_secs) / 86400 ))
     if (( days_until_pay <= 5 )); then
-      # Attempt to convert pay date to MM/DD/YYYY if possible
-      local pay_formatted
-      pay_formatted=$(date -j -f "%Y-%m-%d" "$pay" '+%m/%d/%Y' 2>/dev/null)
-      if [[ -n "$pay_formatted" ]]; then
-        pay_str="${pay_formatted}*"
-      else
-        pay_str="*${pay}"
-      fi
+      pay_str="${pay}*"
     fi
   fi
 
+  # Print the row
   printf "| %-10s | %-14s | %-18s | %-18s | %-12s | %-10s |\n" \
-    "$sym" "$cash" "$decl_str" "$ex" "$pay_str" "$freq"
+    "$sym" "$cash" "$decl_str" "$ex_str" "$pay_str" "$freq"
 }
 
 ########################################
@@ -325,5 +334,5 @@ else
   done
 fi
 
-# Trailing newline
+# Trailing newline for visual clarity
 printf "\n"
