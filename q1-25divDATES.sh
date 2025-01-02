@@ -80,13 +80,9 @@ process_symbol() {
       .results
       # Group all records by declaration_date
       | group_by(.declaration_date)
-      # Sort these groups by their date, ascending
       | sort_by(.[0].declaration_date)
-      # Take the group with the MAX (latest) declaration_date
       | last as $latestDeclGroup
 
-      # Among that group, pick earliest ex-div if it’s in the future
-      # else pick the largest ex-div date in the past.
       | ( $latestDeclGroup
           | map(select(.ex_dividend_date > $today))
           | sort_by(.ex_dividend_date)
@@ -103,7 +99,6 @@ process_symbol() {
           )
         end
 
-      # Project final pick into a smaller JSON
       | if . == null then "" else {
           "Symbol": .ticker,
           "Cash Amount": .cash_amount,
@@ -115,7 +110,6 @@ process_symbol() {
     '
   )"
 
-  # If we got nothing, skip
   if [[ -z "$most_recent_dividend" || "$most_recent_dividend" == "null" ]]; then
     return
   fi
@@ -142,7 +136,6 @@ process_symbol() {
     '
   )"
 
-  # If we found a next future ex-date, store it for our later reporting
   if [[ -n "$next_dividend_json" ]]; then
     local fut_symbol fut_exdate
     fut_symbol="$(echo "$next_dividend_json" | jq -r '.Symbol')"
@@ -152,16 +145,15 @@ process_symbol() {
 }
 
 ###############################################################################
-# This function prints the row for Table 1 with the new highlighting rules:
+# This function prints each row for Table 1 with special styling logic:
 #
-# 1) If decl == current_date => single leading asterisk in MM/DD/YYYY
-#      e.g.  *05/01/2025
-# 2) Else, compute how many days old the declaration is:
-#      age_in_days = (today_secs - decl_secs) / 86400
-#    a) If 70 <= age_in_days <= 119 => trailing asterisk (05/01/2025*)
-#    b) Else if (decl_date + 1 year) is within 10 weeks => trailing asterisk
-#         i.e., if ( (decl_secs + 365 days) - today_secs ) <= 70 days
-#    Otherwise, no highlight.
+# - Declaration Date:
+#   1) If decl == current_date => single leading asterisk (e.g. *05/02/2025)
+#   2) If 70 <= age_in_days <= 119 => trailing asterisk (05/02/2025*)
+#   3) If (decl + 1 year) is within 10 weeks => trailing asterisk
+#
+# - Pay Date:
+#   If pay_date is within the next 5 days => trailing asterisk, e.g. 05/07/2025*
 ###############################################################################
 print_most_recent_dividend() {
   local json="$1"
@@ -174,9 +166,10 @@ print_most_recent_dividend() {
   pay="$(echo "$json" | jq -r '."Pay Date"')"
   freq="$(echo "$json" | jq -r '.Frequency')"
 
+  # ---------------
+  # Handle Decl Date
+  # ---------------
   local decl_str="$decl"
-
-  # Convert to seconds
   local decl_secs
   decl_secs="$(date_to_seconds "$decl")"
   local current_secs
@@ -185,36 +178,30 @@ print_most_recent_dividend() {
   local age_in_days
   age_in_days=$(( (current_secs - decl_secs) / 86400 ))
 
-  # For "add 1 year", we'll define 365 days. (Not perfect for leap years, but typical usage.)
   local one_year_secs=$((365*86400))
   local decl_plus_year_secs=$(( decl_secs + one_year_secs ))
   local days_until_annual=$(( (decl_plus_year_secs - current_secs) / 86400 ))
 
-  # We'll attempt to convert to MM/DD/YYYY if we plan to highlight
   local decl_formatted
   decl_formatted=$(date -j -f "%Y-%m-%d" "$decl" '+%m/%d/%Y' 2>/dev/null)
-  # If date command fails, we keep the original YYYY-MM-DD format
 
-  # Condition 1: decl == current_date => single leading asterisk
+  # Condition 1: If decl == current_date => single leading asterisk
   if [[ "$decl" == "$current_date" ]]; then
     if [[ -n "$decl_formatted" ]]; then
       decl_str="*$decl_formatted"
     else
       decl_str="*$decl"
     fi
-
   else
-    # Condition 2: if 70 <= age_in_days <= 119 => trailing asterisk
-    # (10 to 17 weeks old)
+    # Condition 2: 70 <= age_in_days <= 119 => trailing asterisk
     if (( age_in_days >= 70 && age_in_days <= 119 )); then
       if [[ -n "$decl_formatted" ]]; then
         decl_str="${decl_formatted}*"
       else
         decl_str="${decl}*"
       fi
-    # Condition 3: if next annual is within 10 weeks => trailing asterisk
+    # Condition 3: If next annual is within 10 weeks => trailing asterisk
     elif (( days_until_annual <= 70 )); then
-      # That means the next annual declaration is soon
       if [[ -n "$decl_formatted" ]]; then
         decl_str="${decl_formatted}*"
       else
@@ -223,8 +210,33 @@ print_most_recent_dividend() {
     fi
   fi
 
+  # ---------------
+  # Handle Pay Date
+  # ---------------
+  local pay_str="$pay"
+  local pay_secs
+  pay_secs="$(date_to_seconds "$pay")"
+
+  # 5 days => 5*86400
+  local five_days_secs=$((5*86400))
+
+  # If pay_date is in the future AND <= 5 days away => trailing asterisk
+  if (( pay_secs > current_secs )); then
+    local days_until_pay=$(( (pay_secs - current_secs) / 86400 ))
+    if (( days_until_pay <= 5 )); then
+      # Attempt to convert pay date to MM/DD/YYYY if possible
+      local pay_formatted
+      pay_formatted=$(date -j -f "%Y-%m-%d" "$pay" '+%m/%d/%Y' 2>/dev/null)
+      if [[ -n "$pay_formatted" ]]; then
+        pay_str="${pay_formatted}*"
+      else
+        pay_str="*${pay}"
+      fi
+    fi
+  fi
+
   printf "| %-10s | %-14s | %-18s | %-18s | %-12s | %-10s |\n" \
-    "$sym" "$cash" "$decl_str" "$ex" "$pay" "$freq"
+    "$sym" "$cash" "$decl_str" "$ex" "$pay_str" "$freq"
 }
 
 ########################################
@@ -273,7 +285,7 @@ fi
 # Sort them by date (the portion after the comma).
 sorted_future_ex_dates=($(printf "%s\n" "${future_ex_dates[@]}" | sort -t',' -k2))
 
-# We’ll check if any are within the next 10 days.
+# We'll check if any are within the next 10 days.
 ten_days_from_now=$(date -j -v+10d '+%Y-%m-%d')
 current_secs=$(date_to_seconds "$current_date")
 ten_days_secs=$(date_to_seconds "$ten_days_from_now")
@@ -313,5 +325,5 @@ else
   done
 fi
 
-# Trailing newline for visual clarity
+# Trailing newline
 printf "\n"
