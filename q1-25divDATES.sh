@@ -5,6 +5,7 @@
 ########################################
 POLYGON_API_KEY="get_yr_own_API_KEY_https://polygon.io/"
 
+# Define your portfolio as an array of strings in the format "symbol:buy_in_price" (in USD)
 # Feel free to replace with your own list of dividend yielding stocks.
 # This particular list is ranked.
 # From top to bottom, the highest yield rewards (~19% w/$OXLC and ~5% w/$T)
