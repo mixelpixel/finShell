@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Set your Finnhub API key (Free Tier LIMIT: 60 requests per min)
-FINNHUB_API_KEY="ctm4tdhr01qvk0t3ap0gctm4tdhr01qvk0t3ap10"
+FINNHUB_API_KEY="get one at finnhub.io"
+
 
 # Define your portfolio as an array of strings in the format "symbol:buy_in_price"
 portfolio=(
