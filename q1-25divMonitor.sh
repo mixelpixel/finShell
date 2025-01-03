@@ -1,20 +1,9 @@
 #!/bin/bash
 
 # Set your Finnhub API key (Free Tier LIMIT: 60 requests per min)
-API_KEY="get_yr_own_API_KEY_https://finnhub.io/"
+FINNHUB_API_KEY="ctm4tdhr01qvk0t3ap0gctm4tdhr01qvk0t3ap10"
 
-# Define your portfolio as an array of strings in the format "symbol:buy_in_price" (in USD)
-# Context: Q1'25 these are some dividend and reward yielding stocks (and 1 crypto) in a portfolio I am monitoring regularly
-# I have yet to explore RapidAPI's Seeking Alpha https://rapidapi.com/apidojo/api/seeking-alpha/pricing
-# So far I have tried polygon.io (5 API requests per minute)
-# and https://www.alphavantage.co/ but I am ignorant of other simple and FREE means to get current price and dividend data
-# Please feel free to replace my list of stocks and buy in prices with yur own portfolio!
-# REQUIRES jq & curl in yr env
-# Feel free to replace with your own list of dividend yielding stocks.
-# This particular list is ranked.
-# From top to bottom, the highest yield rewards (~19% w/$OXLC and ~5% w/$T)
-# Conceptually this associated yield rate is simply what Robinhoood reported on the day ~12/24/2024
-# The value can be thought of as the rate that caught my interest.
+# Define your portfolio as an array of strings in the format "symbol:buy_in_price"
 portfolio=(
   "OXLC:5.09"
   "BCE:22.63"
@@ -33,9 +22,21 @@ portfolio=(
   "SOL:123.14"
   "ATNI:22.46"
   "T:19.5"
+  "CVX:98.25"
+  "XOM:112.77"
+  "SBUX:74.88"
+  "KO:61.50"
+  "NOBL:91.73"
+  "BAC:24.09"
+  "CMI:229.78"
+  "OXY:58.38"
+  "MSFT:199.88"
+  "AAPL:72.48"
+  "QQQ:481.66"
+  "META:236.41"
 )
 
-# Global variable to track the last request time (per the free tier API call limits)
+# Global variable to track the last request time
 last_request_time=0
 
 # Function to fetch the current stock price from Finnhub API
@@ -53,18 +54,18 @@ get_stock_price() {
   fi
 
   # Send the request to Finnhub API
-  response=$(curl -s "https://finnhub.io/api/v1/quote?symbol=$symbol&token=$API_KEY")
+  response=$(curl -s "https://finnhub.io/api/v1/quote?symbol=$symbol&token=$FINNHUB_API_KEY")
   
   # Update the last request time
   last_request_time=$(date +%s)
 
-  # Extract the current price from the response (field 'c' i.e. cost)
+  # Extract the current price from the response (field 'c')
   current_price=$(echo "$response" | jq -r '.c')
   
   echo "$current_price"
 }
 
-# Function to fetch SOL cryptocurrency price from the Coinbase API
+# Function to fetch SOL cryptocurrency price from Coinbase API
 get_crypto_price() {
   response=$(curl -s "https://api.coinbase.com/v2/prices/SOL-USD/spot")
   price=$(echo "$response" | jq -r '.data.amount' 2>/dev/null)
