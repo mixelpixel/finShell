@@ -5,13 +5,6 @@
 ########################################
 POLYGON_API_KEY="get_yr_own_API_KEY_https://polygon.io/"
 
-# Define your portfolio as an array of strings in the format "symbol:buy_in_price" (in USD)
-# Feel free to replace with your own list of dividend yielding stocks.
-# This particular list is ranked.
-# From top to bottom, the highest yield rewards (~19% w/$OXLC and ~5% w/$T)
-# Conceptually this associated yield rate is simply what Robinhoood reported on the day ~12/24/2024
-# Currently not used in this script, the value can be thought of as:
-# The rate that caught my interest.
 portfolio=(
   "OXLC:5.09"
   "BCE:22.63"
@@ -29,6 +22,18 @@ portfolio=(
   "ET:11.98"
   "ATNI:22.46"
   "T:19.5"
+  "CVX:98.25"
+  "XOM:112.77"
+  "SBUX:74.88"
+  "KO:61.50"
+  "NOBL:91.73"
+  "BAC:24.09"
+  "CMI:229.78"
+  "OXY:58.38"
+  "MSFT:199.88"
+  "AAPL:72.48"
+  "QQQ:481.66"
+  "META:236.41"
 )
 
 batch_size=5
@@ -234,21 +239,32 @@ print_most_recent_dividend() {
   fi
 
   ########################################
-  # Pay Date (YYYY-MM-DD + trailing "*" if within 5 days)
+    # Pay Date (YYYY-MM-DD with asterisks based on conditions)
   ########################################
   local pay_str="$pay"
   local pay_secs
   pay_secs="$(date_to_seconds "$pay")"
+
   if (( pay_secs > current_secs )); then
+    # Pay date is in the future
     local days_until_pay=$(( (pay_secs - current_secs) / 86400 ))
-    if (( days_until_pay <= 5 )); then
-      pay_str="${pay}*"
+      if (( days_until_pay <= 7 )); then
+        # Pay date is within the next 7 days
+        pay_str="*${pay}"
+      fi
+  elif (( pay_secs < current_secs )); then
+    # Pay date is in the past
+    local days_since_pay=$(( (current_secs - pay_secs) / 86400 ))
+    if (( days_since_pay <= 7 )); then
+        # Pay date was up to 7 days ago
+        pay_str="${pay}*"
     fi
   fi
 
   # Print the row
   printf "| %-10s | %-14s | %-18s | %-18s | %-12s | %-10s |\n" \
-    "$sym" "$cash" "$decl_str" "$ex_str" "$pay_str" "$freq"
+  "$sym" "$cash" "$decl_str" "$ex_str" "$pay_str" "$freq"
+
 }
 
 ########################################
