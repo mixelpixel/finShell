@@ -1,9 +1,9 @@
 #!/bin/zsh
 
-# Define your Finnhub API key
+# Set your Finnhub API key (Free Tier LIMIT: 60 requests per min)
 FINNHUB_API_KEY="get one at finnhub.io"
 
-# Define your Polygon.io API key for dividend data
+# Define your Polygon.io API key for dividend data (Free tier limit 5 requests per min)
 POLYGON_API_KEY="get one at polygon.io"
 
 # Define your portfolio as an array of strings in the format "symbol:buy_in_price"
