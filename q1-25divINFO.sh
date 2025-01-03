@@ -1,17 +1,12 @@
 #!/bin/zsh
 
 # Define your Finnhub API key
-FINNHUB_API_KEY="get_yr_own_API_KEY_https://finnhub.io/"
+FINNHUB_API_KEY="ctm4tdhr01qvk0t3ap0gctm4tdhr01qvk0t3ap10"
 
 # Define your Polygon.io API key for dividend data
-POLYGON_API_KEY="get_yr_own_API_KEY_https://polygon.io/"
+POLYGON_API_KEY="9_vLLYqfkow4neALRDCLwuriDxAIpfxu"
 
 # Define your portfolio as an array of strings in the format "symbol:buy_in_price"
-# Feel free to replace with your own list of dividend yielding stocks.
-# This particular list is ranked.
-# From top to bottom, the highest yield rewards (~19% w/$OXLC and ~5% w/$T)
-# Conceptually this associated yield rate is simply what Robinhoood reported on the day ~12/24/2024
-# The value can be thought of as the rate that caught my interest.
 portfolio=(
   "OXLC:5.09"
   "BCE:22.63"
@@ -30,6 +25,18 @@ portfolio=(
   "SOL:123.14"
   "ATNI:22.46"
   "T:19.5"
+  "CVX:98.25"
+  "XOM:112.77"
+  "SBUX:74.88"
+  "KO:61.50"
+  "NOBL:91.73"
+  "BAC:24.09"
+  "CMI:229.78"
+  "OXY:58.38"
+  "MSFT:199.88"
+  "AAPL:72.48"
+  "QQQ:481.66"
+  "META:236.41"
 )
 
 # Function to fetch real-time stock data from Finnhub
@@ -122,7 +129,7 @@ calculate_yields() {
 
   # Output results
   echo "$symbol:"
-  echo "  Buy-in Price: $"
+  echo "  Buy-in Price: $buy_in_price"
   echo "  Current Price: $stock_price"
   echo "  Total Dividends (Last Year): $total_dividends"
   echo "  Trailing Yield: $trailing_yield%"
